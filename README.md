@@ -19,16 +19,16 @@ Pressure, temperature, and humidity sensor using an Arduino Mega 2560 microcontr
 
 ## Arduino external documentation
 ### Libraries used:
-// for TFT display communication (hardware SPI)
-#include <SPI.h> 
-// for I2C communication with both sensors
-#include <Wire.h> 
-// core graphics library
-#include "Adafruit_GFX.h" 
-// library for HX8357D TFT controller
-#include "Adafruit_HX8357.h" 
-// library for SHT85
-#include "Adafruit_SHT31.h"
+    // for TFT display communication (hardware SPI)
+    #include <SPI.h> 
+    // for I2C communication with both sensors
+    #include <Wire.h> 
+    // core graphics library
+    #include "Adafruit_GFX.h" 
+    // library for HX8357D TFT controller
+    #include "Adafruit_HX8357.h" 
+    // library for SHT85
+    #include "Adafruit_SHT31.h"
 
 ### Data conversions:
 Raw pressure:  
