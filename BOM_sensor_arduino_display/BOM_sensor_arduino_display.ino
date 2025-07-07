@@ -98,7 +98,8 @@ void loop() {
     byte lowByte = Wire.read();
 
     // status 00 = normal operation, 01 = device in command mode, 10 = stale data, 11 = diagnostic condition
-    int status = (highByte >> 6) & 0x03; // Mask to get only the two most significant bits
+    // mask to get only the two most significant bits
+    int status = (highByte >> 6) & 0x03; 
 
     // combine the lower 6 bits of the high byte with the low byte to form the 14-bit raw pressure data
     // mask unneeded high byte's 2 bits (0x3F), then shift bits
@@ -113,7 +114,7 @@ void loop() {
     // convert to mm mercury
     float pressureValueMMHG = pressureValuePSI * PSI_TO_MMHG_FACTOR;
 
-    // output to Serial Monitor
+    // output to serial sonitor
     Serial.print("SSC Raw: ");
     Serial.print(rawPressure);
     Serial.print(", Status: ");
