@@ -31,18 +31,19 @@ Pressure, temperature, and humidity sensor using an Arduino Mega 2560 microcontr
 #include "Adafruit_SHT31.h"
 
 ### Data conversions:
-Raw pressure:
-((highByte & 0x3F) << 8) | lowByte
-First 2 bits of the high byte are unneeded and masked using 0x3F (00111111)
-Then the high byte is shifted to make room for the low byte (00111111 -> 00111111 00000000)
+Raw pressure:  
+    First 2 bits of the high byte are unneeded and masked using 0x3F (00111111)  
+    Then the high byte is shifted to make room for the low byte (00111111 -> 00111111 00000000)
+    ((highByte & 0x3F) << 8) | lowByte  
 
-FSS (Full scale scan) value:
-Current pressure reading as a percentage of the sensor's Full Scale Span
-Min/max and span values are in the data sheet
-((float)rawPressure - SSC_OUTPUT_MIN_RAW(1638.0)) * 100.0 / SSC_DIGITAL_SPAN(14746.0 - 1638.0)
 
-PSI value:
-SSC_P_MIN(1638.0) + (pressurePercentFSS / 100.0) * (SSC_P_MAX(14746.0) - SSC_P_MIN(1638.0))
+FSS (Full scale scan) value:  
+    Current pressure reading as a percentage of the sensor's Full Scale Span  
+    Min/max and span values are in the data sheet  
+    ((float)rawPressure - SSC_OUTPUT_MIN_RAW(1638.0)) * 100.0 / SSC_DIGITAL_SPAN(14746.0 - 1638.0)
 
-MMHg value:
-pressureValuePSI * PSI_TO_MMHG_FACTOR(51.715)
+PSI value:  
+    SSC_P_MIN(1638.0) + (pressurePercentFSS / 100.0) * (SSC_P_MAX(14746.0) - SSC_P_MIN(1638.0))
+
+MMHg value:  
+    pressureValuePSI * PSI_TO_MMHG_FACTOR(51.715)
