@@ -11,3 +11,4 @@ Pressure, temperature, and humidity sensor using an Arduino Mega 2560 microcontr
 | SHT85 humidity sensor | 1 | 28.30 | [Digikey](https://www.digikey.com/en/products/detail/sensirion-ag/SHT85/9666378) |
 | 3.5" TFT 320x480 + Touchscreen Breakout Board | 1 | 39.95 | [Adafruit](https://www.adafruit.com/product/2050) |
 
+![bom sensor_bb](https://github.com/user-attachments/assets/20724e03-b584-434f-a5a0-a3751cacb441)
