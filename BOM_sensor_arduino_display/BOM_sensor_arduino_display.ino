@@ -54,20 +54,19 @@ void setup() {
   Serial.begin(115200); 
   while (!Serial);
 
-  Serial.println("Initializing TFT Display");
   tft.begin();
   tft.setRotation(0);
   tft.fillScreen(HX8357_WHITE);
   tft.setTextColor(HX8357_BLACK, HX8357_WHITE); 
   tft.setTextSize(4); 
 
-  Serial.println("Initializing I2C for Pressure Sensor (Mega: SDA=D20, SCL=D21)");
+  // Serial.println("Pressure_mmHg,Temperature_C,Humidity_Percent");
+  // delay(100);
   
   // initialize I2C communication
   Wire.begin(); 
 
   // initialize SHT85 sensor
-  Serial.print("Initializing SHT85 sensor");
    // default 0x44, in datasheet
   if (!sht31.begin(0x44)) {  
     Serial.println("Couldn't find SHT85 sensor");
@@ -76,10 +75,7 @@ void setup() {
     tft.println("SHT85 Error");
     // halt if sensor not found
     while (1) delay(1); 
-  } else {
-    Serial.println("SHT85 sensor found");
   }
-
   tft.setTextSize(data_size);
   tft.setCursor(10, 10);
   tft.println("Pressure:");
@@ -114,14 +110,8 @@ void loop() {
     // convert to mm mercury
     float pressureValueMMHG = pressureValuePSI * PSI_TO_MMHG_FACTOR;
 
-    // output to serial sonitor
-    Serial.print("SSC Raw: ");
-    Serial.print(rawPressure);
-    Serial.print(", Status: ");
-    Serial.print(status);
-    Serial.print(", Pressure: ");
-    Serial.print(pressureValueMMHG, 4); 
-    Serial.print("" + SSC_PRESSURE_UNIT);
+    // output to serial monitor
+    Serial.print(pressureValueMMHG, 4);
 
     // clear the area where the previous pressure reading was
     tft.fillRect(10, 60, 200, 35, HX8357_WHITE);
@@ -148,9 +138,13 @@ void loop() {
   // read SHT85 temp/humidity Sensor
   float temperature = sht31.readTemperature();
   float humidity = sht31.readHumidity();
+
   // output to Serial Monitor
-  Serial.print(" | SHT Temp: "); Serial.print(temperature, 2); Serial.print("C");
-  Serial.print(" | SHT Hum: "); Serial.print(humidity, 2); Serial.println("%");
+  Serial.print(",");
+  Serial.print(temperature, 2);   
+  Serial.print(",");
+  Serial.println(humidity, 2);
+
   // display Temperature on TFT
   // clear previous temp reading area
   tft.fillRect(10, 170, 200, 35, HX8357_WHITE);
