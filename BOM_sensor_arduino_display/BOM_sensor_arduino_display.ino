@@ -1,180 +1,135 @@
-// for TFT display communication (hardware SPI)
-#include <SPI.h> 
-// for I2C communication with both sensors
-#include <Wire.h> 
-// core graphics library
-#include "Adafruit_GFX.h" 
-// library for HX8357D TFT controller
-#include "Adafruit_HX8357.h" 
-// library for SHT85
-#include "Adafruit_SHT31.h" 
+#include <SPI.h>             // for TFT
+#include <Wire.h>            // for I²C (RTC & pressure)
+#include <RTClib.h>          // DS3231 RTC
+#include <Adafruit_GFX.h>    // core graphics
+#include <Adafruit_HX8357.h> // HX8357 TFT
+#include <Adafruit_SHT31.h>  // SHT31 temp/humidity
 
-#define TFT_CS    10
-#define TFT_DC     9
-#define TFT_RST    8
-// SCK -> digital Pin 52
-// MOSI -> digital Pin 51
-// MISO -> digital Pin 50
-
-// initializes the TFT display object with the defined pins
+// TFT (hardware SPI on an Uno)
+#define TFT_CS   10
+#define TFT_DC    9
+#define TFT_RST   8
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
-// I2C address of 7-bit pressure sensor, defined in data sheet
-const int SSC_SENSOR_I2C_ADDRESS = 0x78; 
- 
-// minimum pressure of the sensor's range (0 psi for absolute pressure), in data sheet
-const float SSC_P_MIN = 0.0;     
+// RTC & sensors
+RTC_DS3231     rtc;
+Adafruit_SHT31 sht31 = Adafruit_SHT31();
 
-// maximum pressure of the sensor's range (1.6BA converted to psi), in data sheet
-const float SSC_P_MAX = 23.21; 
+// SSC pressure sensor I²C address + conversion constants
+const int   SSC_I2C_ADDR     = 0x78;
+const float SSC_P_MIN        = 0.0;
+const float SSC_P_MAX        = 23.21;
+const float PSI_TO_MMHG      = 51.715;
+const float SSC_MIN_RAW      = 1638.0;
+const float SSC_MAX_RAW      = 14746.0;
+const float SSC_RAW_SPAN     = SSC_MAX_RAW - SSC_MIN_RAW;
 
-// pressure unit       
-const String SSC_PRESSURE_UNIT = "mmHg";
+// Text sizes
+const int TEXT_SIZE_DATA = 4;
+const int TEXT_SIZE_TIME = 4;
 
-// conversion for psi to mmhg
-const float PSI_TO_MMHG_FACTOR = 51.715;
-
-// constants for 14-bit digital output transfer function (from datasheet)
-// 10% of 2^14
-const float SSC_OUTPUT_MIN_RAW = 1638.0; 
-// 90% of 2^14
-const float SSC_OUTPUT_MAX_RAW = 14746.0;
-// span of possible values
-const float SSC_DIGITAL_SPAN = SSC_OUTPUT_MAX_RAW - SSC_OUTPUT_MIN_RAW;
-
-// SHT85 Temp/Humidity Sensor
-// uses I2C address 0x44, in data sheet
-// initialize SHT31 object
-Adafruit_SHT31 sht31 = Adafruit_SHT31(); 
-
-// has 5 bytes of data, low/high temp, low/high humidity, and checksum
-const int data_size = 5;
+float rawToMmHg(uint16_t raw) {
+  float pct = (raw - SSC_MIN_RAW) * 100.0 / SSC_RAW_SPAN;
+  float psi = SSC_P_MIN + pct/100.0 * (SSC_P_MAX - SSC_P_MIN);
+  return psi * PSI_TO_MMHG;
+}
 
 void setup() {
-  Serial.begin(115200); 
+  Serial.begin(115200);
   while (!Serial);
 
+  // RTC init & auto‑set if it lost power
+  Wire.begin();
+  if (!rtc.begin()) {
+    Serial.println("RTC not found!");
+    while (1) delay(10);
+  }
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power; setting to compile time");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
+  // SHT31 init
+  if (!sht31.begin(0x44)) {
+    Serial.println("SHT31 not found!");
+    while (1) delay(10);
+  }
+
+  // TFT init
   tft.begin();
   tft.setRotation(0);
   tft.fillScreen(HX8357_WHITE);
-  tft.setTextColor(HX8357_BLACK, HX8357_WHITE); 
-  tft.setTextSize(4); 
-
-  // Serial.println("Pressure_mmHg,Temperature_C,Humidity_Percent");
-  // delay(100);
-  
-  // initialize I2C communication
-  Wire.begin(); 
-
-  // initialize SHT85 sensor
-   // default 0x44, in datasheet
-  if (!sht31.begin(0x44)) {  
-    Serial.println("Couldn't find SHT85 sensor");
-    tft.setCursor(10, 10);
-    tft.setTextColor(HX8357_RED);
-    tft.println("SHT85 Error");
-    // halt if sensor not found
-    while (1) delay(1); 
-  }
-  tft.setTextSize(data_size);
-  tft.setCursor(10, 10);
-  tft.println("Pressure:");
-  tft.setCursor(10, 120); 
-  tft.println("Temp:");
-  tft.setCursor(10, 230);
-  tft.println("Humidity:");
+  tft.setTextColor(HX8357_BLACK, HX8357_WHITE);
+  tft.setTextSize(4);
+  tft.setCursor(10,  10); tft.println("Pressure:");
+  tft.setCursor(10, 120); tft.println("Temp:");
+  tft.setCursor(10, 230); tft.println("Humidity:");
 }
 
 void loop() {
-  unsigned int rawPressure = 0;
-  Wire.requestFrom(SSC_SENSOR_I2C_ADDRESS, 2);
+  // read date/time
+  DateTime now = rtc.now();
+  // separate date / time strings
+  char dateStr[11], timeStr[9];
+  snprintf(dateStr, sizeof(dateStr), "%04d-%02d-%02d",
+           now.year(), now.month(), now.day());
+  snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d",
+           now.hour(), now.minute(), now.second());
 
+  // read pressure
+  Wire.requestFrom(SSC_I2C_ADDR, (uint8_t)2);
+  float mmHg = NAN;
   if (Wire.available() == 2) {
-    byte highByte = Wire.read();
-    byte lowByte = Wire.read();
-
-    // status 00 = normal operation, 01 = device in command mode, 10 = stale data, 11 = diagnostic condition
-    // mask to get only the two most significant bits
-    int status = (highByte >> 6) & 0x03; 
-
-    // combine the lower 6 bits of the high byte with the low byte to form the 14-bit raw pressure data
-    // mask unneeded high byte's 2 bits (0x3F), then shift bits
-    rawPressure = ((highByte & 0x3F) << 8) | lowByte; 
-
-    // convert raw 14 bit reading to meaningful pressure value
-    float pressurePercentFSS = ((float)rawPressure - SSC_OUTPUT_MIN_RAW) * 100.0 / SSC_DIGITAL_SPAN;
-
-    // map percentage to actual physical pressure range.
-    float pressureValuePSI = SSC_P_MIN + (pressurePercentFSS / 100.0) * (SSC_P_MAX - SSC_P_MIN);
-
-    // convert to mm mercury
-    float pressureValueMMHG = pressureValuePSI * PSI_TO_MMHG_FACTOR;
-
-    // output to serial monitor
-    Serial.print(pressureValueMMHG, 4);
-
-    // clear the area where the previous pressure reading was
-    tft.fillRect(10, 60, 200, 35, HX8357_WHITE);
-
-    // set cursor, text size, and color for pressure reading
-    // "__ mmHg"
-    tft.setCursor(10, 60);
-    tft.setTextSize(data_size);
-    tft.setTextColor(HX8357_RED);
-    // 3 decimal places
-    tft.setTextSize(data_size);
-    tft.print(pressureValueMMHG, 2);
-    tft.print(SSC_PRESSURE_UNIT);
-
-  } else {
-    Serial.print("ERROR: Did not receive 2 bytes from SSC sensor.");
-    tft.fillRect(10, 60, 90, 35, HX8357_WHITE);
-    tft.setCursor(10, 40);
-    tft.setTextSize(2);
-    tft.setTextColor(HX8357_RED);
-    tft.println("SSC Error!");
+    uint8_t hb = Wire.read(), lb = Wire.read();
+    uint16_t raw = ((hb & 0x3F) << 8) | lb;
+    mmHg = rawToMmHg(raw);
   }
 
-  // read SHT85 temp/humidity Sensor
-  float temperature = sht31.readTemperature();
-  float humidity = sht31.readHumidity();
+  // read temp + humidity
+  float tempC = sht31.readTemperature();
+  float hum   = sht31.readHumidity();
 
-  // output to Serial Monitor
-  Serial.print(",");
-  Serial.print(temperature, 2);   
-  Serial.print(",");
-  Serial.println(humidity, 2);
+  // Serial: print date, time, pressure, temp, humidity
+  Serial.print(dateStr);
+  Serial.print("  ");
+  Serial.print(timeStr);
+  Serial.print("  |  ");
+  Serial.print(mmHg, 2);  Serial.print(" mmHg, ");
+  Serial.print(tempC, 2); Serial.print(" C, ");
+  Serial.print(hum, 2);   Serial.println(" %");
 
-  // display Temperature on TFT
-  // clear previous temp reading area
+  // TFT: pressure
+  tft.fillRect(10,  60, 200, 35, HX8357_WHITE);
+  tft.setCursor(10,  60);
+  tft.setTextSize(TEXT_SIZE_DATA);
+  tft.setTextColor(HX8357_RED, HX8357_WHITE);
+  if (!isnan(mmHg)) {
+    tft.print(mmHg, 2);
+    tft.print("mmHg");
+  } else {
+    tft.print("ERR");
+  }
+
+  // TFT: temp
   tft.fillRect(10, 170, 200, 35, HX8357_WHITE);
-  // position below "Temp:" label
-  tft.setCursor(10, 170); 
-  tft.setTextSize(data_size);
-  tft.setTextColor(HX8357_RED);
-  if (!isnan(temperature)) {
-    tft.print(temperature, 2);
-    tft.print("C");
-  } else {
-    tft.setTextColor(HX8357_RED);
-    tft.println("Read Error");
-  }
+  tft.setCursor(10, 170);
+  tft.print(isnan(tempC) ? 0.0 : tempC, 2);
+  tft.print("C");
 
-  // display Humidity on display
-  // clear previous humidity reading area
+  // TFT: humidity
   tft.fillRect(10, 280, 200, 35, HX8357_WHITE);
-  // position below "Humidity:" label
-  tft.setCursor(10, 280); 
-  tft.setTextSize(data_size);
-  tft.setTextColor(HX8357_RED);
-  if (!isnan(humidity)) { 
-    tft.print(humidity, 2); 
-    tft.print("%");
-  } else {
-    tft.setTextColor(HX8357_RED);
-    tft.println("Read Error");
-  }
+  tft.setCursor(10, 280);
+  tft.print(isnan(hum) ? 0.0 : hum, 2);
+  tft.print("%");
 
-  // update every second
+  // TFT: date on one line, time on next
+  tft.setTextSize(TEXT_SIZE_TIME);
+  tft.setTextColor(HX8357_BLACK, HX8357_WHITE);
+  tft.fillRect(10, 350, 220, 60, HX8357_WHITE);
+  tft.setCursor(10, 350);
+  tft.print(dateStr);
+  tft.setCursor(10, 350 + 40);  // adjust the vertical offset as needed
+  tft.print(timeStr);
+
   delay(1000);
 }
