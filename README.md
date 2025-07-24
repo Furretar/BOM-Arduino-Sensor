@@ -6,8 +6,8 @@ Pressure, temperature, and humidity sensor using an Arduino Uno microcontroller 
 | Item | Number | Cost (USD) | Link |
 |------|--------|-------------|------|
 | **Electronics Component Fun Kit**<br><br>Components (wires interchangeable):<br>• (3) long red wires<br>• (1) short red wire<br>• (1) long blue wire<br>• (5) long white wires<br>• (4) medium black wires<br>• (2) 220 ohm resistors<br>• (4) short m-m jumper wires<br>• (1) 1x20 pin header | 1<br>(has enough for 3 builds) | 13.98 | [Amazon](https://www.amazon.com/REXQualis-Electronics-tie-Points-Breadboard-Potentiometer/dp/B073ZC68QG) |
-| ARDUINO Uno | 1 | 49.90 | [Amazon](https://a.co/d/ct9kYeS) |
-| SSCSRNN1.6BA7A3 pressure sensor | 1 | 27.60 | [Digikey](https://www.digikey.com/short/wj780tdv) |
+| ARDUINO Uno | 1 | 27.60 | [Amazon](https://a.co/d/ct9kYeS) |
+| SSCSRNN1.6BA7A3 pressure sensor | 1 | 58.74 | [Digikey](https://www.digikey.com/short/wj780tdv) |
 | SHT85 humidity sensor | 1 | 28.30 | [Digikey](https://www.digikey.com/en/products/detail/sensirion-ag/SHT85/9666378) |
 | 3.5" TFT 320x480 + Touchscreen Breakout Board | 1 | 39.95 | [Adafruit](https://www.adafruit.com/product/2050) |
 | DS3231 RTC Module | 1 (enough for 2 builds) | 5.59 | [Amazon](https://a.co/d/eaZFmYb) |
