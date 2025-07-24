@@ -4,6 +4,7 @@ import re
 import time
 from datetime import datetime
 from serial.tools import list_ports
+import os
 
 # --- auto‑find Arduino port ---
 ports = list(list_ports.comports())
@@ -33,9 +34,12 @@ print("Timestamp,Pressure(mmHg),Temperature(C),Humidity(%)")
 # regex to pull three floats
 pattern = re.compile(r"([-+]?\d*\.\d+|\d+)\s*mmHg,\s*([-+]?\d*\.\d+|\d+)\s*C,\s*([-+]?\d*\.\d+|\d+)\s*%")
 
-with open(output_file, 'w', newline='') as f:
+file_exists = os.path.exists(output_file)
+with open(output_file, 'a', newline='') as f:
     writer = csv.writer(f)
-    writer.writerow(['Timestamp','Pressure (MMHg)','Temperature (C)','Humidity (%)'])
+    if not file_exists or os.stat(output_file).st_size == 0:
+        writer.writerow(['Timestamp','Pressure (MMHg)','Temperature (C)','Humidity (%)'])
+
 
     try:
         while True:
