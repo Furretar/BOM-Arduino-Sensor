@@ -1,11 +1,14 @@
 Open Tera Term
 Select Serial
-Select COM with Gilibrator 2
+Select COM with GoCal Pro
 Press Ok
+	Confirm data is being logged at this step
 File > Log...
-Set Filename/Directory to the same as the exe/script
-	Make sure Timestamp is not selected
+Set Filename/Directory to the same as the exe/script (Ex. W:\BOM-Arduino-Sensor\Go-Cal_Pro_Log\teraterm.log)
+	Make sure Timestamp is selected
 	Name must be "teraterm.log"
 Press Ok
-Run "Gilibrator_2_Log.exe"
-	To run the python script, navigate to its directory in cmd and type 'py Gilibrator_2_Log.py'
+Run "Go-Cal_Pro_Log.exe"
+	To run the python script, navigate to its directory in cmd and type 'py "Go-Cal_Pro_Log.py'
+The data should appear in the console, and is saved to "bom_sensor_data.csv"
+	Make sure the "teraterm.log" is generated in the same directory as the exe
