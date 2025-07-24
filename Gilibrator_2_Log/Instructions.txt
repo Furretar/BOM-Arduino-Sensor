@@ -1,0 +1,13 @@
+Open Tera Term
+Select Serial
+Select COM with Gilibrator 2
+Press Ok
+File > Log...
+Set Filename/Directory to the same as the exe/script
+	Make sure Timestamp is not selected
+	Name must be "teraterm.log"
+Press Ok
+Run "Gilibrator_2_Log.exe"
+	To run the python script, navigate to its directory in cmd and type 'py Gilibrator_2_Log.py'
+Generate readings using Gilibrator 2, they should appear in the console
+	Make sure the "teraterm.log" is generated in the same directory as the exe
