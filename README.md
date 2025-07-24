@@ -1,21 +1,25 @@
 # BOM-Arduino-Sensor
-Pressure, temperature, and humidity sensor using an Arduino Mega 2560 microcontroller and a display.
+Pressure, temperature, and humidity sensor using an Arduino Uno microcontroller and a display.
 
 ## Materials for 1 humidity, temperature, and pressure sensor
 
 | Item | Number | Cost (USD) | Link |
 |------|--------|-------------|------|
-| **Electronics Component Fun Kit**<br><br>Components (wires interchangeable):<br>• (3) long red wires<br>• (1) short red wire<br>• (1) long blue wire<br>• (5) long white wires<br>• (4) medium black wires<br>• (2) 220 ohm resistors<br>• (4) short m-m jumper wires<br>• (1) 1x20 pin header | 1<br>(has enough for 4 builds) | 13.98 | [Amazon](https://www.amazon.com/REXQualis-Electronics-tie-Points-Breadboard-Potentiometer/dp/B073ZC68QG) |
-| ARDUINO MEGA2560 | 1 | 49.90 | [Digikey](https://www.digikey.com/short/2p8pqhvz) |
+| **Electronics Component Fun Kit**<br><br>Components (wires interchangeable):<br>• (3) long red wires<br>• (1) short red wire<br>• (1) long blue wire<br>• (5) long white wires<br>• (4) medium black wires<br>• (2) 220 ohm resistors<br>• (4) short m-m jumper wires<br>• (1) 1x20 pin header | 1<br>(enough for 3 builds) | 13.98 | [Amazon](https://www.amazon.com/REXQualis-Electronics-tie-Points-Breadboard-Potentiometer/dp/B073ZC68QG) |
+| ARDUINO Uno | 1 | 27.60 | [Amazon](https://a.co/d/ct9kYeS) |
 | SSCSRNN1.6BA7A3 pressure sensor | 1 | 58.74 | [Digikey](https://www.digikey.com/short/wj780tdv) |
 | SHT85 humidity sensor | 1 | 28.30 | [Digikey](https://www.digikey.com/en/products/detail/sensirion-ag/SHT85/9666378) |
 | 3.5" TFT 320x480 + Touchscreen Breakout Board | 1 | 39.95 | [Adafruit](https://www.adafruit.com/product/2050) |
+| DS3231 RTC Module | 1 (enough for 2 builds) | 5.59 | [Amazon](https://a.co/d/eaZFmYb) |
 
 ## Fritzing diagram
-![bom sensor_bb](https://github.com/user-attachments/assets/d4edcf34-8760-4dee-b4fb-91e8825d763a)
+<img width="1809" height="1881" alt="bom sensor 2_bb" src="https://github.com/user-attachments/assets/ace89fd3-cf81-4787-944c-415b6b55f05a" />
+
 
 ## Picture of finished electronics (no housing)
-![bom sensor](https://github.com/user-attachments/assets/b016bb6f-acc8-4704-b568-0b205b91c5a2)
+![20250724_084801](https://github.com/user-attachments/assets/03cb5f3d-ab3c-43e4-837c-7ca18b66bae8)
+![20250724_084821](https://github.com/user-attachments/assets/c9cf6365-c7f3-4ac1-87a8-3c855e9ee163)
+
 
 ## Arduino external documentation
 ### Libraries used:
