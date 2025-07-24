@@ -1,66 +1,147 @@
-import serial
-import csv
-import re
-import time
-from datetime import datetime
+import serial, csv, re, time, os
+from datetime import datetime, timedelta
+from bisect import bisect_left
 from serial.tools import list_ports
-import os
 
-# --- auto‑find Arduino port ---
-ports = list(list_ports.comports())
-arduino_ports = [p.device for p in ports if "Arduino" in p.description]
-if arduino_ports:
-    port = arduino_ports[0]
-else:
-    if not ports:
-        print("No serial ports found!")
-        exit(1)
+# — Auto find Arduino port —
+ports = list_ports.comports()
+arduinos = [p.device for p in ports if "Arduino" in p.description]
+if arduinos:
+    port = arduinos[0]
+elif ports:
     port = ports[0].device
-
+else:
+    raise SystemExit("No serial ports found!")
 baud = 115200
-output_file = 'bom_sensor_data.csv'
 
-print(f"Opening serial port {port} at {baud} baud…")
+# regex patterns
+tera_path = "teraterm.log"
+tera_pattern = re.compile(
+    r"\[([0-9\-:\. ]+)\] \$DATA: \{.*?\"flow\":\"([\d\.]+)\".*?\"baro\":\"([\d\.]+)\"")
+out_file = "bom_sensor_data.csv"
+
+# prepare CSV 
+first_time = not os.path.exists(out_file) or os.stat(out_file).st_size == 0
+f_out = open(out_file, "a", newline="")
+writer = csv.writer(f_out)
+if first_time:
+    writer.writerow([
+        "Timestamp",
+        "Pressure(mmHg)",
+        "Temperature(C)",
+        "Humidity(%)",
+        "TeraFlow",
+        "TeraPressure",
+        "TeraTimestamp"
+    ])
+
+# open and seek TeraTerm log for the end
+pump_f = open(tera_path, "r") if os.path.exists(tera_path) else None
+tera_pos = pump_f.tell() if pump_f else 0
+
+# In memory sorted list of tera entries
+tera_entries = []
+tera_times   = []
+
+def reload_new_tera():
+    """Read any new lines in teraterm.log and append to our lists."""
+    global pump_f, tera_pos
+
+    if not os.path.exists(tera_path):
+        pump_f = None
+        return
+
+    if pump_f is None:
+        pump_f = open(tera_path, "r")
+        tera_pos = 0
+        tera_entries.clear()
+        tera_times.clear()
+
+    pump_f.seek(tera_pos)
+
+    for ln in pump_f:
+        m = tera_pattern.search(ln)
+        if not m:
+            continue
+        ts_str, flow, baro = m.groups()
+        ts_str = " ".join(ts_str.split())
+        try:
+            ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+        if tera_times and ts <= tera_times[-1]:
+            continue
+        tera_entries.append((ts, flow, baro))
+        tera_times.append(ts)
+
+    tera_pos = pump_f.tell()
+
+# Open Arduino serial
+ser = serial.Serial(port, baud, timeout=2)
+time.sleep(2)
+
+# Send time sync with seconds adjustment
+adjusted_time = datetime.now() + timedelta(seconds=0)
+time_sync_cmd = f"SETTIME {adjusted_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+ser.write(time_sync_cmd.encode())
+
+# Read Arduino reply (optional)
+reply = ser.readline().decode().strip()
+print(f"Sent time sync: {time_sync_cmd.strip()}")
+print(f"Arduino replied: {reply}")
+
+print(f"Logging to {out_file}, matching within 1 second to TeraTerm. Ctrl+C to quit.")
+print(f"Arduino Timestamp   |Pressure(mmHg)|Temperature(C)|Humidity(%)|Pump Flow(mL/min)|Pump Pressure(mmHg)|Pump Timestamp")
+
 try:
-    ser = serial.Serial(port, baud, timeout=2)
-    time.sleep(2)  # let it warm up
-except Exception as e:
-    print(f"Error opening serial port: {e}")
-    exit(1)
+    while True:
+        # 1) pull in any new TeraTerm lines
+        reload_new_tera()
 
-print(f"Logging to {output_file}")
-print("Timestamp,Pressure(mmHg),Temperature(C),Humidity(%)")
+        # 2) read one Arduino line
+        line = ser.readline().decode("utf-8", "ignore").strip()
+        if "|" not in line:
+            continue
 
-# regex to pull three floats
-pattern = re.compile(r"([-+]?\d*\.\d+|\d+)\s*mmHg,\s*([-+]?\d*\.\d+|\d+)\s*C,\s*([-+]?\d*\.\d+|\d+)\s*%")
+        # 3) parse Arduino
+        left, right = line.split("|", 1)
+        ts_str = left.strip()
+        vals   = [v.strip().split()[0] for v in right.split(",")]
+        if len(vals) < 3:
+            continue
+        pressure, temp, hum = vals[:3]
+        try:
+            ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
 
-file_exists = os.path.exists(output_file)
-with open(output_file, 'a', newline='') as f:
-    writer = csv.writer(f)
-    if not file_exists or os.stat(output_file).st_size == 0:
-        writer.writerow(['Timestamp','Pressure (MMHg)','Temperature (C)','Humidity (%)'])
+        # 4) find nearest TeraTerm entry within 1 second
+        flow = baro = pump_ts_str = ""
+        if tera_times:
+            idx = bisect_left(tera_times, ts)
+            for j in (idx-1, idx):
+                if 0 <= j < len(tera_times):
+                    delta = abs((tera_times[j] - ts).total_seconds())
+                    if delta <= 1:
+                        tts, flow, baro = tera_entries[j]
+                        pump_ts_str = tts.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                        break
 
+        # 5) write and flush
+        writer.writerow([
+            ts.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            pressure, temp, hum,
+            flow, baro, pump_ts_str
+        ])
+        f_out.flush()
 
-    try:
-        while True:
-            line = ser.readline().decode('utf-8', errors='ignore').strip()
-            if not line:
-                continue
+        print(f"{ts_str}|{pressure}        |{temp}         |{hum}  "
+              f"    |{flow}        |{baro}             |{pump_ts_str}")
 
-            # look for our three values
-            m = pattern.search(line)
-            if not m:
-                continue
-
-            pressure, temp, humidity = m.groups()
-            now = datetime.now()
-            timestamp = now.strftime('%Y-%m-%d %H:%M:%S.') + f"{now.microsecond//1000:03d}"
-
-            writer.writerow([timestamp, pressure, temp, humidity])
-            f.flush()
-
-            print(f"{timestamp} | {pressure} | {temp} | {humidity}")
-
-    except KeyboardInterrupt:
-        print("\nStopping.")
-        ser.close()
+except KeyboardInterrupt:
+    print("\nStopping.")
+finally:
+    ser.close()
+    f_out.close()
+    if pump_f:
+        pump_f.close()
