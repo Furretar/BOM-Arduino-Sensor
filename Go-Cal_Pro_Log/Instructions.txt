@@ -10,5 +10,6 @@ Set Filename/Directory to the same as the exe/script (Ex. W:\BOM-Arduino-Sensor\
 Press Ok
 Run "Go-Cal_Pro_Log.exe"
 	To run the python script, navigate to its directory in cmd and type 'py "Go-Cal_Pro_Log.py'
+	If access is denied, try unplugging and replugging the Arduino or Go-Cal Pro
 The data should appear in the console, and is saved to "bom_sensor_data.csv"
 	Make sure the "teraterm.log" is generated in the same directory as the exe
