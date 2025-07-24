@@ -2,14 +2,39 @@ import serial, csv, re, time, os
 from datetime import datetime, timedelta
 from serial.tools import list_ports
 
-ports = list_ports.comports()
-arduinos = [p.device for p in ports if "Arduino" in p.description]
-if arduinos:
-    port = arduinos[0]
-elif ports:
-    port = ports[0].device
-else:
-    raise SystemExit("No serial ports found!")
+FORCE_PORT = None  # e.g. "COM4"
+
+def find_serial_port():
+    if FORCE_PORT:
+        try:
+            test_ser = serial.Serial(FORCE_PORT)
+            test_ser.close()
+            print("Using forced port:", FORCE_PORT)
+            return FORCE_PORT
+        except serial.SerialException as e:
+            raise SystemExit(f"Forced port {FORCE_PORT} failed to open: {e}")
+    
+    ports = list_ports.comports()
+    arduinos = [p.device for p in ports if "Arduino" in p.description]
+    candidate_ports = arduinos if arduinos else [p.device for p in ports]
+    
+    if not candidate_ports:
+        raise SystemExit("No serial ports found!")
+    
+    for i, p in enumerate(candidate_ports):
+        try:
+            test_ser = serial.Serial(p)
+            test_ser.close()
+            if not arduinos:
+                print("No Arduino found. Using first working port:", p)
+            return p
+        except serial.SerialException as e:
+            if i == len(candidate_ports) - 1:
+                raise SystemExit(f"All ports failed to open: last error was {e}")
+    
+    raise SystemExit("No usable serial ports available.")
+
+port = find_serial_port()
 baud = 115200
 
 tera_path = "teraterm.log"
