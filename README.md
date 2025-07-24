@@ -3,7 +3,7 @@ Pressure, temperature, and humidity sensor using an Arduino Uno microcontroller 
 
 ## Materials for 1 humidity, temperature, and pressure sensor
 
-| Item | Number | Cost (USD) | Link |
+| Item | Quantity | Cost (USD) | Link |
 |------|--------|-------------|------|
 | Electronics Component Fun Kit | 1<br>(enough for 3 builds) | 13.98 | [Amazon](https://www.amazon.com/REXQualis-Electronics-tie-Points-Breadboard-Potentiometer/dp/B073ZC68QG) |
 | ARDUINO Uno | 1 | 27.60 | [Amazon](https://a.co/d/ct9kYeS) |
