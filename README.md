@@ -13,10 +13,13 @@ Pressure, temperature, and humidity sensor using an Arduino Uno microcontroller 
 | DS3231 RTC Module | 1 (enough for 2 builds) | 5.59 | [Amazon](https://a.co/d/eaZFmYb) |
 
 ## Fritzing diagram
-![bom sensor_bb](https://github.com/user-attachments/assets/d4edcf34-8760-4dee-b4fb-91e8825d763a)
+<img width="1809" height="1881" alt="bom sensor 2_bb" src="https://github.com/user-attachments/assets/ace89fd3-cf81-4787-944c-415b6b55f05a" />
+
 
 ## Picture of finished electronics (no housing)
-![bom sensor](https://github.com/user-attachments/assets/b016bb6f-acc8-4704-b568-0b205b91c5a2)
+![20250724_084801](https://github.com/user-attachments/assets/03cb5f3d-ab3c-43e4-837c-7ca18b66bae8)
+![20250724_084821](https://github.com/user-attachments/assets/c9cf6365-c7f3-4ac1-87a8-3c855e9ee163)
+
 
 ## Arduino external documentation
 ### Libraries used:
