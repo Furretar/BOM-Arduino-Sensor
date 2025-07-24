@@ -38,7 +38,7 @@ port = find_serial_port()
 baud = 115200
 
 tera_path = "teraterm.log"
-tera_triplet_pattern = re.compile(r"(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+)")
+tera_triplet_pattern = re.compile(r"(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)")
 
 
 out_file = "bom_sensor_data.csv"
