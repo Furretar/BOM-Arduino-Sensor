@@ -38,7 +38,8 @@ port = find_serial_port()
 baud = 115200
 
 tera_path = "teraterm.log"
-tera_triplet_pattern = re.compile(r"(\d+)\s+(\d+)\s+(\d+)")
+tera_triplet_pattern = re.compile(r"(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+)")
+
 
 out_file = "bom_sensor_data.csv"
 
@@ -61,12 +62,27 @@ tera_pos = 0
 pump_f = None
 
 def reload_new_tera():
-    global pump_f, tera_pos, tera_entries
+    global pump_f, tera_pos, tera_entries, tera_path
+
     if not os.path.exists(tera_path):
         pump_f = None
         return
 
-    if pump_f is None:
+    try:
+        stat = os.stat(tera_path)
+        current_size = stat.st_size
+        current_mtime = stat.st_mtime
+    except Exception:
+        return
+
+    if pump_f is None or pump_f.closed:
+        pump_f = open(tera_path, "r")
+        tera_pos = 0
+        tera_entries.clear()
+
+    elif tera_pos > current_size:
+        print("TeraTerm log was truncated or rotated. Reopening.")
+        pump_f.close()
         pump_f = open(tera_path, "r")
         tera_pos = 0
         tera_entries.clear()
@@ -78,14 +94,19 @@ def reload_new_tera():
     if not new_data.strip():
         return
 
+    # print(f"Detected new TeraTerm log data: {new_data}")
+
     matches = tera_triplet_pattern.findall(new_data)
+    # print("Detected new TeraTerm log data joined:", ' '.join(f"{a} {b} {c}" for a, b, c in matches))
     for flow, avg_flow, sample_str in matches:
         sample_num = int(sample_str)
-        flow_val = int(flow)
-        avg_flow_val = int(avg_flow)
+        flow_val = float(flow)
+        avg_flow_val = float(avg_flow)
         if tera_entries and sample_num <= tera_entries[-1][0]:
             continue
         tera_entries.append((sample_num, flow_val, avg_flow_val))
+
+
 
 
 ser = serial.Serial(port, baud, timeout=2)
@@ -112,8 +133,8 @@ if os.path.exists(tera_path):
     matches = tera_triplet_pattern.findall(content)
     for flow, avg_flow, sample_str in matches:
         sample_num = int(sample_str)
-        flow_val = int(flow)
-        avg_flow_val = int(avg_flow)
+        flow_val = float(flow)
+        avg_flow_val = float(avg_flow)
         if tera_entries and sample_num <= tera_entries[-1][0]:
             continue
         tera_entries.append((sample_num, flow_val, avg_flow_val))
