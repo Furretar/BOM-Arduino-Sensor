@@ -20,6 +20,7 @@ Pressure, temperature, and humidity sensor using an Arduino Uno microcontroller 
 ![20250724_084801](https://github.com/user-attachments/assets/03cb5f3d-ab3c-43e4-837c-7ca18b66bae8)
 ![20250724_084821](https://github.com/user-attachments/assets/c9cf6365-c7f3-4ac1-87a8-3c855e9ee163)
 
+Every time the data logging scripts are run, the time on the arduino is set, causing the display to refresh.
 
 ## Arduino external documentation
 ### Libraries used:
