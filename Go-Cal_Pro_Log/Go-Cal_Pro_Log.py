@@ -19,26 +19,28 @@ def find_serial_port():
     ports = list_ports.comports()
     arduinos = [p.device for p in ports if "Arduino" in p.description]
     candidate_ports = arduinos if arduinos else [p.device for p in ports]
-    
+
     if not candidate_ports:
         raise SystemExit("No serial ports found!")
-    
-    for i, p in enumerate(candidate_ports):
+
+    print("Detected serial ports:", candidate_ports)
+
+    for p in candidate_ports:
+        print(f"\nTrying port: {p}")
         try:
             test_ser = serial.Serial(p)
             test_ser.close()
-            if not arduinos:
-                print("No Arduino found. Using first working port:", p)
-            return p
+            user_input = input("Port opened successfully. Type 'y' to use it, or press Enter to try next: ").strip().lower()
+            if user_input == "y" or user_input == "yes":
+                print("Using port:", p)
+                return p
         except serial.SerialException as e:
-            if i == len(candidate_ports) - 1:
-                raise SystemExit(f"All ports failed to open: last error was {e}")
-    
-    raise SystemExit("No usable serial ports available.")
+            print(f"Could not open port {p}: {e}")
+
+    raise SystemExit("No usable serial ports selected.")
 
 port = find_serial_port()
 baud = 115200
-
 
 # regex patterns
 tera_path = "teraterm.log"
