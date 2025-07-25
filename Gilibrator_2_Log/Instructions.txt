@@ -2,6 +2,9 @@ Open Tera Term
 Select Serial
 Select COM with Gilibrator 2
 Press Ok
+Before you connect the Gilibrator, make sure the first data logged is not sample 1
+	The first sample prints extra data which is not handled currently
+	If the data is not printing in the terminal, delete the teraterm.log file and reconnect to teraterm
 File > Log...
 Set Filename/Directory to the same as the exe/script (Ex. W:\BOM-Arduino-Sensor\Gilibrator_2_Log\teraterm.log)
 	Make sure Timestamp is not selected
