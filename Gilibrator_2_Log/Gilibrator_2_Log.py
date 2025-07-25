@@ -23,25 +23,23 @@ def find_serial_port():
 
     print("Detected serial ports:", candidate_ports)
 
-    valid_ports = []
     for p in candidate_ports:
         try:
             test_ser = serial.Serial(p)
             test_ser.close()
-            valid_ports.append(p)
         except serial.SerialException:
             continue
 
-    if not valid_ports:
-        raise SystemExit("No usable serial ports available.")
+        while True:
+            print(f"\nFound working port: {p}")
+            user_input = input("Press Enter to skip, or type 'y' to use this port: ").strip().lower()
+            if user_input == "y":
+                print("Using port:", p)
+                return p
+            elif user_input == "":
+                break
 
-    i = 0
-    while True:
-        port = valid_ports[i % len(valid_ports)]
-        print(f"\nUsing port: {port}")
-        print("Press Enter to try the next one, or Ctrl+C to quit.")
-        input()
-        i += 1
+    raise SystemExit("No usable serial ports selected.")
 
 port = find_serial_port()
 baud = 115200
