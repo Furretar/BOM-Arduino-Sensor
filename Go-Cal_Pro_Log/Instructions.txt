@@ -2,14 +2,15 @@ Open Tera Term
 Select Serial
 Select COM with GoCal Pro
 Press Ok
-	Confirm data is being logged at this step
+	Confirm data is being logged in Tera Term at this step
 File > Log...
-Set Filename/Directory to the same as the exe/script (Ex. W:\BOM-Arduino-Sensor\Go-Cal_Pro_Log\teraterm.log)
+Set Filename/Directory to the same as the script (Ex. W:\BOM-Arduino-Sensor\Go-Cal_Pro_Log\teraterm.log)
 	Make sure Timestamp is selected
 	Name must be "teraterm.log"
 Press Ok
-Run "Go-Cal_Pro_Log.exe"
-	To run the python script, navigate to its directory in cmd and type 'py "Go-Cal_Pro_Log.py'
+Run "Go-Cal_Pro_Log.py"
+	To run the python script in the console, navigate to its directory in cmd and type "py 'Go-Cal_Pro_Log.py'"
 	If access is denied, try unplugging and replugging the Arduino or Go-Cal Pro
 The data should appear in the console, and is saved to "bom_sensor_data.csv"
 	Make sure the "teraterm.log" is generated in the same directory as the exe
+If the script hangs or still doesn't log any data, try restarting the computer
