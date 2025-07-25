@@ -13,26 +13,35 @@ def find_serial_port():
             return FORCE_PORT
         except serial.SerialException as e:
             raise SystemExit(f"Forced port {FORCE_PORT} failed to open: {e}")
-    
+
     ports = list_ports.comports()
     arduinos = [p.device for p in ports if "Arduino" in p.description]
     candidate_ports = arduinos if arduinos else [p.device for p in ports]
-    
+
     if not candidate_ports:
         raise SystemExit("No serial ports found!")
-    
-    for i, p in enumerate(candidate_ports):
+
+    print("Detected serial ports:", candidate_ports)
+
+    valid_ports = []
+    for p in candidate_ports:
         try:
             test_ser = serial.Serial(p)
             test_ser.close()
-            if not arduinos:
-                print("No Arduino found. Using first working port:", p)
-            return p
-        except serial.SerialException as e:
-            if i == len(candidate_ports) - 1:
-                raise SystemExit(f"All ports failed to open: last error was {e}")
-    
-    raise SystemExit("No usable serial ports available.")
+            valid_ports.append(p)
+        except serial.SerialException:
+            continue
+
+    if not valid_ports:
+        raise SystemExit("No usable serial ports available.")
+
+    i = 0
+    while True:
+        port = valid_ports[i % len(valid_ports)]
+        print(f"\nUsing port: {port}")
+        print("Press Enter to try the next one, or Ctrl+C to quit.")
+        input()
+        i += 1
 
 port = find_serial_port()
 baud = 115200
