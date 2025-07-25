@@ -10,7 +10,7 @@ Pressure, temperature, and humidity sensor using an Arduino Uno microcontroller 
 | SSCSRNN1.6BA7A3 pressure sensor | 1 | 58.74 | [Digikey](https://www.digikey.com/short/wj780tdv) |
 | SHT85 humidity sensor | 1 | 28.30 | [Digikey](https://www.digikey.com/en/products/detail/sensirion-ag/SHT85/9666378) |
 | 3.5" TFT 320x480 + Touchscreen Breakout Board | 1 | 39.95 | [Adafruit](https://www.adafruit.com/product/2050) |
-| DS3231 RTC Module | 1 (enough for 2 builds) | 5.59 | [Amazon](https://a.co/d/eaZFmYb) |
+| DS3231 RTC Module 2-pack | 1 (enough for 2 builds) | 5.59 | [Amazon](https://a.co/d/eaZFmYb) |
 
 ## Fritzing diagram
 <img width="1809" height="1881" alt="bom sensor 2_bb" src="https://github.com/user-attachments/assets/ace89fd3-cf81-4787-944c-415b6b55f05a" />
